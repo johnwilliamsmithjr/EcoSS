@@ -2,19 +2,9 @@
 ## Replicate dataframe 10 times and run DALEC
 
 ## Description: Simulates data using the Reflex Evergreen model. Adds both process and observational noise into the data.
-## After simulating the data, a STAN model is compiled (see model_fixG.stan for details). This model is then fit using STAN, 
-## a Hamiltonian Monte Carlo sampler. Plots are created for densities of the underlying parameters with credible intervals, and
-## plots of the latent carbon pools are compared to the true (deterministic / noiseless) states. 
-
-## Set directory to be location of the folder containing the following files:
-##    - DALEC_data_gen.R (this file)
-##    - EV1_drivers.csv
-##    - EV1_initial.csv
 
 ## ---------------- MODEL BLOCK -----------------------
-set.seed(777)
-#direc = 'Reflex/Sampler'
-#setwd(paste('~/', direc, sep =''))
+## set.seed(777) 
 
 GPP = function(lai, p11, maxt, mint, Ca, lat, yearday, Nit, rad){
   ## Creates GPP function in order to compute the GPP for a day based on values input from the drivers
@@ -59,24 +49,18 @@ GPP = function(lai, p11, maxt, mint, Ca, lat, yearday, Nit, rad){
 psid = -2
 rtot = 1
 
-## Reads in drivers and sets column names
-if ('EV1_drivers.csv' %in% dir()){
-  drivers_ev = read.csv('./EV1_drivers.csv', header = F)
-  colnames(drivers_ev) = c('projectday', 'mint', 'maxt', 'rad', 'ca', 'yearday')
-} else{
-  cat('Please add file EV1_drivers.csv to the directory. \n')
-}
-
 ## Reads in initial conditions
-if ('EV1_initial.csv' %in% dir()){
-  init_ev = read.csv('./EV1_initial.csv', header = F)
+if ('EV1_initial.csv' %in% dir('./data/')){
+  init_ev = read.csv('./data/EV1_initial.csv', header = F)
 } else{
   cat('Please add file EV1_initial.csv to the directory. \n')
 }
 
-drivers_ev <- do.call(rbind, replicate(3, coredata(drivers_ev), simplify = FALSE))
+## quick check on projectday
+
 drivers_ev$projectday <- as.numeric(rownames(drivers_ev))
 
+## allocates space for fluxes
 Cf_e = rep(NA, nday)
 Cr_e = rep(NA, nday)
 Cw_e = rep(NA, nday)
@@ -95,11 +79,11 @@ Rh2_e = rep(NA, nday)
 D_e = rep(NA, nday)
 NEE_e = rep(NA, nday)
 LAI = rep(NA, nday)
-Cf_e[1] = init_ev[12,]
-Cr_e[1] = init_ev[13,]
-Cw_e[1] = init_ev[14,]
-Clit_e[1] = init_ev[15,]
-Csom_e[1] = init_ev[16,]
+Cf_e[1] = init_mean[1]
+Cr_e[1] = init_mean[3]
+Cw_e[1] = init_mean[2]
+Clit_e[1] = init_mean[4]
+Csom_e[1] = init_mean[5]
 
 ## Scales lat, sets Nit and LMA
 lat_e = init_ev[17,]
@@ -158,7 +142,6 @@ G_obs = G_e + rnorm(nday, 0, sd = .2)
 Lr_obs <- Lr_e + rnorm(nday, 0, .001)
 
 D_e_obs <- D_e + rnorm(nday, 0, .01)
-.5*exp(p_e[10]*.5*(drivers_ev$maxt[i] + drivers_ev$mint[i]))
 De_ll <- function(p, C, maxt, mint, D_e_obs){
   sum(dnorm(D_e_obs, p[1]*C[,4]*.5*exp(p[10]*.5*(maxt + mint)), sd = .01, log = TRUE))
 }

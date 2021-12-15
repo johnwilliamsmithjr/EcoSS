@@ -2,7 +2,11 @@
 ## perform state space MCMC on DALECev model with monthly timestep model
 ## and monthly observed data
 
-source('./monthly_timestep_monthly_obs_setup.R')
+source('./setup/data_sim/monthly_timestep_monthly_obs_datasim.R')
+
+source('./setup/MCMC/monthly_timestep_monthly_obs_MCMC.R')
+
+##source('./monthly_timestep_monthly_obs_setup.R')
 ## time process
 t1 <- Sys.time()
 

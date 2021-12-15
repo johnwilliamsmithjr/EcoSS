@@ -3,7 +3,12 @@
 ## with yearly observations
 
 ## generate data and initialize MCMC
-source('./daily_timestep_yearly_obs_setup.R')
+
+source('./setup/data_sim/daily_timestep_yearly_obs_datasim.R')
+
+source('./setup/MCMC/daily_timestep_yearly_obs_MCMC.R')
+
+##source('./daily_timestep_yearly_obs_setup.R')
 
 t1 <- Sys.time()
 for (i in 2:chain_length){

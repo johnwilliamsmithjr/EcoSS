@@ -18,7 +18,7 @@ latent_initialization <- function(data, obs.ind, min.ind, max.ind, type = rep('p
     }
     if (type[i] == 'gp'){
       da <- darg(list(mle = TRUE, max = 10), randomLHS(1000,1))
-      gpi <- newGPsep(matrix(obs.ind/730), data[obs.ind, i], d = da$start, g = 1e-6, dK = TRUE)
+      gpi <- newGPsep(matrix(obs.ind/max.ind), data[obs.ind, i], d = da$start, g = 1e-6, dK = TRUE)
       mle <- mleGPsep(gpi, param = 'd', tmin = da$min, tmax = da$max, ab = da$ab)
       p <- predGPsep(gpi, matrix((min.ind:max.ind)/max.ind, ncol = 1))
       latent.init <- cbind(latent.init, p$mean)
