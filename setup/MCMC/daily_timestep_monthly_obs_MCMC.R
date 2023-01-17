@@ -40,8 +40,8 @@ yearday <- drivers_ev$yearday
 rad <- drivers_ev$rad
 # Set chain length and burn in for MCMC
 if (!('chain_length' %in% ls())){
-  chain_length <- 10000
-  cat('No changes detected in chain length, using default of 10000\n')
+  chain_length <- 20000
+  cat('No changes detected in chain length, using default of 20000\n')
 }
 if (!('burn' %in% ls())){
   burn <- 2000
@@ -164,10 +164,9 @@ if (!('update' %in% ls())){
 ## check if block is given as user argument, otherwise use default block
 
 if (!('block' %in% ls())){
-  block <- vector('list', 4)
-  block[[1]] <- c(11)
-  block[[2]] <- c(1,8)
-  block[[3]] <- c(9,10)
-  block[[4]] <- c(2,3,4) 
+  block <- vector('list', 3)
+  block[[1]] <- c(1,8)
+  block[[2]] <- c(9,10)
+  block[[3]] <- c(2,3,4) 
   cat('No changes detected in block updates, using default blocks\n')
 }
