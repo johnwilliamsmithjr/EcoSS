@@ -89,6 +89,5 @@ for (i in 2:chain_length){
     }
     print(Sys.time() - t1)
     if (i >= burn+500) print(effectiveSize(pars[burn:i, ]))
-    print(old)
   }
 }
