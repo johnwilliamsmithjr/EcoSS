@@ -41,14 +41,14 @@ if (!('init_mean' %in% ls())){
   cat('No changes detected in IC means, using default initial means\n')
 }
 
-if (!('var_add' %in% ls())){
-  var_add <- c(2, 9, (2)^2, .25, 16)  
-  cat('No changes detected in process precisions, using default precision set\n')
-}
-
 if (!('var_obs' %in% ls())){
   var_obs <- c(4, 16, 1^2, 1^2, 25)
   cat('No changes detected in observation precisions, using default precision set\n')
+}
+
+if (!('var_add' %in% ls())){
+  var_add <- 1 / c(0.29750, 0.00618, 0.06000, 3.62500, 0.07500)
+  cat('No changes detected in process precisions, using default precision set\n')
 }
 
 prec_add <- 1 / var_add
