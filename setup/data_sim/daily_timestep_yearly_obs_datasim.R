@@ -42,7 +42,7 @@ if (!('init_mean' %in% ls())){
 }
 
 if (!('var_add' %in% ls())){
-  var_add <- c(2, 9, (2)^2, .25, 16)  
+  var_add <- 1 / c(0.29750, 0.00618, 0.06000, 3.62500, 0.07500)
   cat('No changes detected in process precisions, using default precision set\n')
 }
 
