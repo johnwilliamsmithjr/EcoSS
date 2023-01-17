@@ -1,6 +1,5 @@
 ## daily_timestep_yearly_obs_MCMC.R
 ## sets up necessary arrays, initializations to perform MCMC
-
 source('./setup/MCMC/MCMC_funs.R')
 library(Rcpp)
 library(truncnorm)
@@ -22,6 +21,7 @@ source('./setup/MCMC/cpp_ss_likelihood.R')
 source('./setup/MCMC/get_latent_sample.R')
 source('./setup/MCMC/latent_initialization.R')
 
+
 ## ------------ Sampler Test Run -----------##
 # Set carbon stock variables from data generation scripts
 Cf <- Cf_e
@@ -40,11 +40,11 @@ yearday <- drivers_ev$yearday
 rad <- drivers_ev$rad
 # Set chain length and burn in for MCMC
 if (!('chain_length' %in% ls())){
-  chain_length <- 10000
-  cat('No changes detected in chain length, using default of 10000\n')
+  chain_length <- 50000
+  cat('No changes detected in chain length, using default of 20000\n')
 }
 if (!('burn' %in% ls())){
-  burn <- 2000
+  burn <- 4000
   cat('No changes detected in burnin period, using default of 2000\n')
 }
 options(warn = 2)
@@ -56,9 +56,9 @@ C_obs <- cbind(Cf.obs, Cw.obs, Cr.obs, Clit.obs, Csom.obs)
 
 if (!('observation_index' %in% ls())){
   missing_data_ind = seq(from = 1, to = nday, by = 365)
-  cat('No changes detected in observation index, using yearly observation data\n')
+  cat('No changes detected in observation index, using monthly observation data\n')
 } else{
-  missing_data_ind = observation_index
+  missing_data_ind <- observation_index
 }
 missing_data_ind = c(missing_data_ind, nday)
 C_obs[-missing_data_ind,] <- NA
@@ -83,15 +83,53 @@ C.0[1,] <- init_mean
 C_samples[1,,1] <- init_mean
 # Initialize first entry to observed data
 
+## for yearly stocks, it helps to add some low points
+## for Clit. This is justifiable because of the assumed
+## seasonal trend
+C_obs_tmp <- C_obs
+C_obs_tmp[floor(seq(from = 365/2, to = 2190, by = 365)), 4] = 16
+
+
 if (!('stock_inits' %in% ls())){
   if (!('init_type' %in% ls())){
-    C_samples[, , 1] <- latent_initialization(C_obs, missing_data_ind, 1, nday, type = c('pwl', 'pwl', 'pwl', 'pwl', 'pwl'))
-    cat('Initializing latent states using default, piece wise linear interpolation\n')
+    ## initialize vectors
+    testCf <- rep(NA, 2190)
+    testCw <- rep(NA, 2190)
+    testCr <- rep(NA, 2190)
+    testCsom <- rep(NA, 2190)
+    testClit <- rep(NA, 2190)
+    ## loop over days
+    for (i in 1:2190){
+      if (i %in% missing_data_ind){
+        testCf[i] <- C_obs[i,1]
+        testCw[i] <- C_obs[i,2]
+        testCr[i] <- C_obs[i,3]
+        testClit[i] <- C_obs[i,4]
+        testCsom[i] <- C_obs[i,5]
+      } else{
+        ## use flux data to create a forwards estimate of stocks
+        testCf[i] <- testCf[i-1] + Af_obs[i] - Lf_obs[i]
+        testCr[i] <- testCr[i-1] + Ar_obs[i] - Lr_obs[i]
+        testCw[i] <- testCw[i-1] + Aw_obs[i] - Lw_obs[i]
+        testClit[i] <- testClit[i-1] + Lf_obs[i] + Lr_obs[i] - 
+          Rh1_obs[i] - D_e_obs[i]
+        testCsom[i] <- testCsom[i-1] + D_e_obs[i] + Lw_obs[i] -
+          Rh2_obs[i]
+      }
+    }
+    ## set initial guesses
+    C_samples[,1,1] <- testCf
+    C_samples[,2,1] <- testCw
+    C_samples[,3,1] <- testCr
+    C_samples[,4,1] <- testClit
+    C_samples[,5,1] <- testCsom
+    
+    cat('No changes detected to initialization method. Initializing using flux data\n')
   } else if (init_type == 'pwl'){
-    C_samples[, , 1] <- latent_initialization(C_obs, missing_data_ind, 1, nday, type = c('pwl', 'pwl', 'pwl', 'pwl', 'pwl'))
+    C_samples[, , 1] <- latent_initialization(C_obs_tmp, missing_data_ind, 1, nday, type = c('pwl', 'pwl', 'pwl', 'pwl', 'pwl'))
     cat('Initializing latent states using piece wise linear interpolation\n')
   } else if (init_type == 'gp'){
-    C_samples[, , 1] <- latent_initialization(C_obs, missing_data_ind, 1, nday, type = c('gp', 'gp', 'gp', 'gp', 'gp'))
+    C_samples[, , 1] <- latent_initialization(C_obs_tmp, missing_data_ind, 1, nday, type = c('gp', 'gp', 'gp', 'gp', 'gp'))
     cat('Initializing latent states using Gaussian Process\n')
   } else{
     cat('Initialization type not recognized, please use one of pwl or gp for latent states\n')
@@ -99,7 +137,6 @@ if (!('stock_inits' %in% ls())){
 } else{
   C_samples[,,1] <- stock_inits
 }
-
 
 ## lower and upper bounds of parameters
 plower <- c(1e-6, .2, .01, .01, 1e-4, 1e-6, 1e-6, 1e-5, 1e-6, .05, 1, 0, 0, 0, 0, 0)
@@ -164,10 +201,10 @@ if (!('update' %in% ls())){
 ## check if block is given as user argument, otherwise use default block
 
 if (!('block' %in% ls())){
-  block <- vector('list', 4)
-  block[[1]] <- c(11)
-  block[[2]] <- c(1,8)
-  block[[3]] <- c(9,10)
-  block[[4]] <- c(2,3,4) 
+  block <- vector('list', 3)
+  #block[[1]] <- c(11)
+  block[[1]] <- c(1,8)
+  block[[2]] <- c(9,10)
+  block[[3]] <- c(2,3,4) 
   cat('No changes detected in block updates, using default blocks\n')
 }
