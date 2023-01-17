@@ -78,6 +78,5 @@ for (i in 2:chain_length){
       plot(pars[1:i, var], type = 'l', main = colnames(pars)[var])
     }
     print(Sys.time() - t1)
-    print(old)
   }
 }
