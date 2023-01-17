@@ -151,7 +151,7 @@ Ra_obs <- Ra_e + rnorm(nday, 0, .08)
 Ra_ll <- function(p, G, Ra_obs){
   sum(dnorm(p[2]*G, Ra_obs, .08, log = TRUE) )
 }
-Rh1_obs <- Rh1_e + rnorm(nday, 0, .2)
+Rh1_obs <- Rh1_e + rnorm(nday, 0, 5e-05)
 
 Rh1_ll <- function(p, C, Rh1_obs, maxt, mint){
   sum(dnorm(p[8]*C[,4]*.5*exp(p[10]*.5*(maxt + mint)), Rh1_obs, .2, log = TRUE) )
@@ -162,22 +162,20 @@ Ar_ll <- function(p, G, Ar_obs){
   sum(dnorm(p[4]*(1-p[3])*(1-p[2])*G, Ar_obs, .005, log = TRUE) )
 }
 
-#Lr_ll <- function(p, C, maxt, mint){
-#  sum(dnorm(D_e_obs, p[1]*C[,4]*.5*exp(p[10]*.5*(maxt + mint)), sd = .1, log = TRUE))
-#}
+Aw_obs = Aw_e + rnorm(nday, 0, 1/sqrt(40000))
 
 Rh2_obs <- Rh2_e + rnorm(nday, 0, .01)
 Rh2_ll <- function(p, C, Rh2_obs, maxt, mint){
   sum(dnorm(p[9]*C[,5]*.5*exp(p[10]*.5*(maxt + mint)), Rh2_obs, .01, log = TRUE) )
 }
 
-Af_obs <- Af_e + rnorm(nday, 0, .1)
+Af_obs <- Af_e + rnorm(nday, 0, .045)
 
 Af_ll <- function(p, Af_obs, G){
   sum(dnorm(G*(p[3])*(1-p[2]), mean = Af_obs, sd = .1, log = TRUE))
 }
 
-Lf_obs <- Lf_e + rnorm(nday, 0, .2)
+Lf_obs <- Lf_e + rnorm(nday, 0, .01)
 Lf_ll <- function(p, C, Lf_obs){
   sum(dnorm(Lf_obs, p[5]*C[,1], sd = .2, log = TRUE))
 }
